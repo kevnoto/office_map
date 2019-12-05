@@ -62,7 +62,7 @@ class Node(object):
 
         """
         name = "{} to {}".format(self.name, connection.name)
-        e = Edge(name, source_node=self, dest_node=connection, xy=xy)
+        e = Edge(name, nodes=[self, connection], xy=xy)
         self.add_edge(e)
         connection.add_edge(e)
 
@@ -71,10 +71,9 @@ class Edge(object):
     """Connects nodes together
 
     """
-    def __init__(self, name, source_node=None, dest_node=None, xy=None):
+    def __init__(self, name, nodes=[], xy=None):
         self.name = name
-        self.source_node = source_node
-        self.dest_node = dest_node
+        self.nodes = nodes
         self.xy = xy or []
 
     @property
@@ -107,7 +106,7 @@ def find_path(source, destination, nodes_traversed=None):
     Parameters
     ----------
     source: Node
-    destination: Node
+    destination: str
 
     Returns
     -------
@@ -123,17 +122,18 @@ def find_path(source, destination, nodes_traversed=None):
     # Iterate over the edges to find valid path
     for edge in source.edges:
         # Exit if we find the destination
-        if edge.dest_node.name == destination.name:
-            possible_paths.append([destination])
-        # Don't iterate over the same nodes
-        elif edge.dest_node.name in traversed_names:
-            pass
-        # Otherwise recursively find path
-        else:
-            path_nodes = find_path(edge.dest_node, destination, nodes_traversed=nodes_traversed)
-            # Only add path if it exists
-            if path_nodes:
-                possible_paths.append(path_nodes)
+        for edge_node in edge.nodes:
+            if edge_node.name == destination:
+                possible_paths.append([edge_node])
+            # Don't iterate over the same nodes
+            elif edge_node.name in traversed_names:
+                pass
+            # Otherwise recursively find path
+            else:
+                path_nodes = find_path(edge_node, destination, nodes_traversed=nodes_traversed)
+                # Only add path if it exists
+                if path_nodes:
+                    possible_paths.append(path_nodes)
 
             # If path exists, figure out the shortest path and return the nodes traveled
             # TODO: include edges traveled and distance somehow
