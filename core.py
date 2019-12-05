@@ -11,7 +11,7 @@ def create_nodes_from_list(node_list):
     
     Returns
     -------
-    list
+    dict
     
     """
     nodes = {}
@@ -123,7 +123,7 @@ def find_path(source, destination, nodes_traversed=None):
     for edge in source.edges:
         # Exit if we find the destination
         for edge_node in edge.nodes:
-            if edge_node.name == destination:
+            if destination in edge_node.destinations:
                 possible_paths.append([edge_node])
             # Don't iterate over the same nodes
             elif edge_node.name in traversed_names:
@@ -140,13 +140,3 @@ def find_path(source, destination, nodes_traversed=None):
     if possible_paths:
         shortest_path = min(possible_paths, key=lambda x: len(x))
         return [source] + shortest_path
-
-
-if __name__ == '__main__':
-    a = Node('meeting0')
-    b = Node('meeting1')
-    c = Node('meeting2')
-    a.connect_to(b, [[0, 0], [1, 0], [2, 0]])
-    b.connect_to(c, [[2, 0], [2, 1], [2, 2]])
-    c.connect_to(a, [[2, 2], [1, 1], [0, 0]])
-    print find_path(a, c)

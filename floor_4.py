@@ -2,7 +2,7 @@ from core import Node
 
 nodes = [
     ("node_1", (0, 0), ["Sydney", "Singapore"], ["node_2"]),
-    ("node_2", (1, 0), ["Seoul"], ["node_1"]),
+    ("node_2", (1, 0), ["Seoul"], ["node_1", "node_3"]),
     ("node_3", (2, 0), ["San Pablo"], ["node_2", "node_4"]),
     ("node_4", (3, 0), [], ["node_3", "node_5", "node_18"]),
     ("node_5", (4, 0), ["Paris"], ["node_4", "node_8"]),
