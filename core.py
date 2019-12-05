@@ -1,14 +1,43 @@
 import numpy as np
 
 
+def create_node_from_coords(node_list):
+    """Given a list tuples (name, coords, destinations, links, 
+    generate the Nodes and edges
+    
+    Parameters
+    ----------
+    node_list: list
+    
+    Returns
+    -------
+    list
+    
+    """
+    nodes = {}
+    count = 0
+    for node_tuple in node_list:
+        node = Node(node_tuple[0], destinations=node_tuple[2], coords=node_tuple[1])
+        nodes[node.name] = node
+        count += 1
+    connection_dict = dict(zip(
+        [i[0] for i in node_tuple],
+        [i[3] for i in node_tuple]
+    ))
+    for name, node in nodes.items():
+        node.connect_to(connection_dict[name])
+    return nodes
+
+
 class Node(object):
     """Connects edges together
 
     """
-    def __init__(self, name, edges=None, destinations=None):
+    def __init__(self, name, edges=None, destinations=None, coords=None):
         self.name = name
         self.edges = edges or []
         self.destinations = destinations
+        self.coords = coords
 
     def __str__(self):
         return "<Node: {}>".format(self.name)
