@@ -25,7 +25,9 @@ def create_nodes_from_list(node_list):
         [i[3] for i in node_list]
     ))
     for name, node in nodes.items():
-        node.connect_to(connection_dict[name])
+        connections = connection_dict[name]
+        for conn_name in connections:
+            node.connect_to(nodes[conn_name])
     return nodes
 
 
