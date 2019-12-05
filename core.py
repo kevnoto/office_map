@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def create_node_from_coords(node_list):
+def create_nodes_from_list(node_list):
     """Given a list tuples (name, coords, destinations, links, 
     generate the Nodes and edges
     
@@ -21,8 +21,8 @@ def create_node_from_coords(node_list):
         nodes[node.name] = node
         count += 1
     connection_dict = dict(zip(
-        [i[0] for i in node_tuple],
-        [i[3] for i in node_tuple]
+        [i[0] for i in node_list],
+        [i[3] for i in node_list]
     ))
     for name, node in nodes.items():
         node.connect_to(connection_dict[name])
