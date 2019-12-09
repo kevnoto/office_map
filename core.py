@@ -1,13 +1,36 @@
 import numpy as np
 
 
-def create_nodes_from_list(node_list):
+def get_edge_xy(start, end, edge_list):
+    """Look in the edge_list for the edge_name and return the edge
+
+    Parameters
+    ----------
+    start: str
+    end: str
+    edge_list: list
+
+    Returns
+    -------
+
+    """
+    for edge in edge_list:
+        if start == edge[0]:
+            if edge[1] == end:
+                return edge[2]
+        elif end == edge[0]:
+            if edge[1] == start:
+                return edge[2]
+
+
+def create_nodes_from_list(node_list, edges_list=()):
     """Given a list tuples (name, coords, destinations, links, 
     generate the Nodes and edges
     
     Parameters
     ----------
     node_list: list
+    edges_list: list
     
     Returns
     -------
@@ -27,7 +50,7 @@ def create_nodes_from_list(node_list):
     for name, node in nodes.items():
         connections = connection_dict[name]
         for conn_name in connections:
-            node.connect_to(nodes[conn_name])
+            node.connect_to(nodes[conn_name], xy=get_edge_xy(node.name, conn_name, edges_list))
     return nodes
 
 
@@ -48,7 +71,9 @@ class Node(object):
         return self.__str__()
 
     def add_edge(self, edge):
-        self.edges.append(edge)
+        edge_connections = [set([i.name for i in e.nodes]) for e in self.edges]
+        if not set([i.name for i in edge.nodes]) in edge_connections:
+            self.edges.append(edge)
 
     def connect_to(self, connection, xy=None):
         """Connect this node to another node and create the edge
@@ -76,6 +101,12 @@ class Edge(object):
         self.nodes = nodes
         self.xy = xy or []
 
+    def __str__(self):
+        return "<Edge for nodes: {}>".format([i.name for i in self.nodes])
+
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def distance(self):
         distance = 0
@@ -100,7 +131,7 @@ def calc_distance(start, end):
     return np.sqrt(np.square(end[1] - start[1]) + np.square(end[0] - start[0]))
 
 
-def find_path(source, destination, nodes_traversed=None):
+def find_path(source, destination, nodes_traversed=None, edges_traversed=None):
     """Find a path from the source node to the destination node
 
     Parameters
@@ -113,10 +144,10 @@ def find_path(source, destination, nodes_traversed=None):
 
     """
     if not nodes_traversed:
-        nodes_traversed = [source]
-    else:
-        nodes_traversed.append(source)
-    edges_traversed = [] # TODO: track the edges we traverse to figure out the distance traveled
+        nodes_traversed = []
+    if not edges_traversed:
+        edges_traversed = []
+    possible_edges = [] # TODO: track the edges we traverse to figure out the distance traveled
     possible_paths = []
     traversed_names = [i.name for i in nodes_traversed]
     # Iterate over the edges to find valid path
@@ -125,18 +156,22 @@ def find_path(source, destination, nodes_traversed=None):
         for edge_node in edge.nodes:
             if destination in edge_node.destinations:
                 possible_paths.append([edge_node])
+                possible_edges.append([edge])
             # Don't iterate over the same nodes
-            elif edge_node.name in traversed_names:
+            elif (edge_node.name in traversed_names) or (edge_node.name == source.name):
                 pass
             # Otherwise recursively find path
             else:
-                path_nodes = find_path(edge_node, destination, nodes_traversed=nodes_traversed)
+                path_nodes, path_edges = find_path(edge_node, destination, nodes_traversed=nodes_traversed + [source], edges_traversed=edges_traversed + [edge])
                 # Only add path if it exists
                 if path_nodes:
-                    possible_paths.append(path_nodes)
+                    possible_paths.append([source] + path_nodes)
+                    possible_edges.append([edge] + path_edges)
 
             # If path exists, figure out the shortest path and return the nodes traveled
             # TODO: include edges traveled and distance somehow
     if possible_paths:
-        shortest_path = min(possible_paths, key=lambda x: len(x))
-        return [source] + shortest_path
+        min_idx = np.argmin([sum([j.distance for j in edges_traversed + i]) for i in possible_edges])
+        return possible_paths[min_idx], possible_edges[min_idx]
+
+    return None, None

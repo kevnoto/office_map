@@ -40,7 +40,7 @@ edges = [
     connect_two("node_2", "node_3"),
     one_bend("node_3", "node_4", bend_y="start"),
     connect_two("node_4", "node_5"),
-    ("node_5", "node_9", [coords["node_4"], (565, coords["node_4"][1]), (565, coords["node_8"][1]), coords["node_8"]]),
+    ("node_5", "node_8", [coords["node_4"], (565, coords["node_4"][1]), (565, coords["node_8"][1]), coords["node_8"]]),
     connect_two("node_8", "node_9"),
     connect_two("node_9", "node_10"),
     connect_two("node_10", "node_11"),
