@@ -1,6 +1,9 @@
 import numpy as np
-from core import Node
+from core import Node, calc_distance
 from floors import floor_4
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import re
 
 
 class NoNode(Exception):
@@ -23,9 +26,49 @@ def find_node(destination_name):
 
     for node in all_nodes.values():
         for dest in node.destinations:
-            if dest == destination_name:
+            if dest.lower() == destination_name.lower():
                 return node
     raise NoNode("Could not find {}".format(destination_name))
+
+
+def dijkstras_path(source, destination):
+    destination_node = find_node(destination)
+    all_nodes_dict = create_nodes_from_list(floor_4.nodes, floor_4.edges)
+    spt_set = set()
+    parent_dict = {}
+    unused_set = {k: np.Inf for k in all_nodes_dict.keys()}
+    unused_set[source.name] = 0
+
+    for _ in range(len(unused_set)):
+        # Pick the minimum distance node
+        node = min(unused_set.keys(), key=lambda x: unused_set[x])
+        unused_set.pop(node)
+        node = all_nodes_dict[node]
+        spt_set.add(node.name)
+        if node.name == destination_node.name:
+            break
+        # Update the adjacent node distances
+        for edge in node.edges:
+            if node.name == edge.nodes[0].name:
+                next_node = edge.nodes[1]
+            else:
+                next_node = edge.nodes[0]
+
+            if next_node.name in spt_set:
+                continue
+            else:
+                unused_set[next_node.name] = calc_distance(destination_node.coords, next_node.coords)
+                parent_dict[next_node.name] = {"node": node, "edge": edge}
+
+    edges_traversed = []
+    nodes_traveled = [destination_node]
+    node_name = destination_node.name
+    while parent_dict.get(node_name):
+        parent = parent_dict.get(node_name)
+        edges_traversed.append(parent["edge"])
+        nodes_traveled.append(parent["node"])
+        node_name = parent["node"].name
+    return nodes_traveled, edges_traversed
 
 
 def find_path(source, destination, nodes_traversed=None, edges_traversed=None):
@@ -127,5 +170,42 @@ def create_nodes_from_list(node_list, edges_list=()):
     return nodes
 
 
+def plot_path(path_nodes, path_edges):
+    img = mpimg.imread('floor_4.png')
+    plt.imshow(img)
+
+    x, y = path_nodes[0].coords
+    plt.scatter(x, y, color='b')
+    x, y = path_nodes[-1].coords
+    plt.scatter(x, y, color='b')
+    for edge in path_edges:
+        x, y = zip(*edge.xy)
+        plt.plot(x, y, 'b-')
+    plt.axis('off')
+    plt.xlim([0, 1850])
+    plt.ylim([1600, 0])
+    plt.tight_layout()
+    # plt.savefig("test.png", dpi=200, format="png")
+    # plt.show()
+
+
+def get_directions(start, end):
+    """Get the nodes and edges from start to end locations
+
+    Parameters
+    ----------
+    start: str
+    end: str
+
+    Returns
+    -------
+
+    """
+    path_nodes, path_edges = dijkstras_path(find_node(start), end)
+    # print "Distance traveled: {:.2f}".format(sum([i.distance for i in path_edges]))
+    return path_nodes, path_edges
+
+
 if __name__ == '__main__':
-    print find_node("Mumbai")
+    nodes, edges = get_directions("Mumbai", "Learning Hub C")
+    plot_path(nodes, edges)
