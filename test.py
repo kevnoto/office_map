@@ -1,7 +1,4 @@
-from core import *
-from floor_4 import *
+from floors.floor_4 import *
+from utils import find_path, create_nodes_from_list, find_node
 
-
-floor_nodes = create_nodes_from_list(nodes)
-source = floor_nodes["node_1"]
-print find_path(source, "Mumbai")
+print find_path(find_node("Jakarta"), "Mumbai")
